@@ -1,0 +1,81 @@
+/* Profile Page Container */
+.profile-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #2e2e3f;
+    color: white;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Profile Section */
+  .profile-section {
+    margin-bottom: 20px;
+  }
+  
+  .profile-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  
+  /* Vehicle Section */
+  .vehicle-section {
+    margin-bottom: 20px;
+  }
+  
+  .vehicle-section p {
+    margin: 5px 0;
+  }
+  
+  /* Availability Toggle */
+  .availability-section {
+    margin-bottom: 20px;
+  }
+  
+  .toggle-btn {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .online {
+    background: #28a745;
+    color: white;
+  }
+  
+  .offline {
+    background: #dc3545;
+    color: white;
+  }
+  
+  /* Ratings Section */
+  .ratings-section {
+    margin-bottom: 20px;
+  }
+  
+  .view-reviews-btn {
+    background: #6b5cff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  /* Contact Support */
+  .contact-support-btn {
+    background: #ff5733;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
