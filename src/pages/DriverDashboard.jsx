@@ -1,26 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import RideDetailsModal from "../components/RideDetailsModal";
 import "../styles/driverDashboard.css";
 
 const DriverDashboard = () => {
   const mapRef = useRef(null);
-  const [rideRequests, setRideRequests] = useState([
+  const routeLineRef = useRef(null);
+  const [driverLocation, setDriverLocation] = useState(null);
+  const [activeRide, setActiveRide] = useState(null);
+  const [isRideStarted, setIsRideStarted] = useState(false);
+
+  const rideRequests = [
     {
       id: 1,
       passengerName: "Alice Johnson",
-      pickup: { lat: 40.7128, lng: -74.006 },
-      dropoff: { lat: 40.73061, lng: -73.935242 },
+      pickup: { lat: 40.748817, lng: -73.985428 }, // Empire State Building
+      dropoff: { lat: 40.752726, lng: -73.977229 }, // Grand Central Terminal
       fare: "$12.50",
-      distance: "3.2 miles",
-      timeEstimate: "10 min",
+      distance: "1.2 miles",
+      timeEstimate: "5 min",
     },
-  ]);
-  const [selectedRide, setSelectedRide] = useState(null);
+  ];
 
   useEffect(() => {
     if (!mapRef.current) {
       const platform = new H.service.Platform({
-        apikey: "V3_ZXbMi14ulTtrvp9qN2QtDCKm13tk14agfp2yQRy4", // Replace with your valid HERE Maps API key
+        apikey: "V3_ZXbMi14ulTtrvp9qN2QtDCKm13tk14agfp2yQRy4",
       });
 
       const defaultLayers = platform.createDefaultLayers();
@@ -28,84 +31,114 @@ const DriverDashboard = () => {
         document.getElementById("here-map"),
         defaultLayers.vector.normal.map,
         {
-          center: { lat: 40.7128, lng: -74.006 },
-          zoom: 12,
+          center: { lat: 40.748817, lng: -73.985428 },
+          zoom: 14,
         }
       );
 
       const behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
       const ui = H.ui.UI.createDefault(map, defaultLayers);
 
-      mapRef.current = { map, behavior, ui };
-      updateMapMarkers(map);
+      mapRef.current = { map, platform, behavior, ui };
+
+      simulateDriverLocation();
     }
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newRequest = {
-        id: Math.floor(Math.random() * 1000),
-        passengerName: `Passenger ${Math.floor(Math.random() * 100)}`,
-        pickup: {
-          lat: 40.7128 + Math.random() * 0.02 - 0.01,
-          lng: -74.006 + Math.random() * 0.02 - 0.01,
-        },
-        dropoff: {
-          lat: 40.73061 + Math.random() * 0.02 - 0.01,
-          lng: -73.935242 + Math.random() * 0.02 - 0.01,
-        },
-        fare: `$${(Math.random() * 20 + 5).toFixed(2)}`,
-        distance: `${(Math.random() * 10 + 1).toFixed(1)} miles`,
-        timeEstimate: `${Math.floor(Math.random() * 30) + 5} min`,
-      };
+  const simulateDriverLocation = () => {
+    const simulatedLocation = { lat: 40.7505, lng: -73.9934 }; // Near Times Square
+    setDriverLocation(simulatedLocation);
+    console.log("Simulated Driver Location:", simulatedLocation);
 
-      setRideRequests((prevRequests) => [...prevRequests, newRequest]);
-      notifyDriver(newRequest);
-    }, 10000); // Add new request every 10 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const updateMapMarkers = (map) => {
-    rideRequests.forEach((ride) => {
-      const marker = new H.map.Marker(ride.pickup);
-      marker.setData(ride);
-      map.addObject(marker);
-
-      marker.addEventListener("tap", (evt) => {
-        setSelectedRide(evt.target.getData());
-      });
-    });
+    if (mapRef.current) {
+      const marker = new H.map.Marker(simulatedLocation);
+      mapRef.current.map.addObject(marker);
+      mapRef.current.map.setCenter(simulatedLocation);
+    }
   };
 
-  const notifyDriver = (newRequest) => {
-    alert(`New Ride Request from ${newRequest.passengerName}`);
-    const sound = new Audio("src/sounds/notification.mp3");
-    sound.play();
+  const acceptRide = (ride) => {
+    setActiveRide(ride);
+    updateRoute(ride.pickup);
+
+    if (mapRef.current) {
+      const pickupMarker = new H.map.Marker(ride.pickup);
+      mapRef.current.map.addObject(pickupMarker);
+    }
   };
 
-  const handleAccept = (id) => {
-    alert(`Ride ${id} accepted!`);
-    setSelectedRide(null);
-    setRideRequests((prev) => prev.filter((ride) => ride.id !== id));
-  };
+  const updateRoute = (destination) => {
+    if (!driverLocation) {
+      console.warn("Driver location not available yet.");
+      return;
+    }
 
-  const handleReject = (id) => {
-    alert(`Ride ${id} rejected.`);
-    setSelectedRide(null);
-    setRideRequests((prev) => prev.filter((ride) => ride.id !== id));
+    const router = mapRef.current.platform.getRoutingService(null, 8);
+
+    const routeRequestParams = {
+      routingMode: "fast",
+      transportMode: "car",
+      origin: `${driverLocation.lat},${driverLocation.lng}`,
+      destination: `${destination.lat},${destination.lng}`,
+      return: "polyline,summary",
+    };
+
+    router.calculateRoute(
+      routeRequestParams,
+      (result) => {
+        if (result.routes.length) {
+          const route = result.routes[0];
+          const lineString = new H.geo.LineString();
+
+          route.sections.forEach((section) => {
+            const decodedPolyline = H.geo.LineString.fromFlexiblePolyline(section.polyline);
+            decodedPolyline.getLatLngAltArray().forEach((coord, index) => {
+              if (index % 3 === 0) {
+                lineString.pushLatLngAlt(coord, decodedPolyline.getLatLngAltArray()[index + 1], 0);
+              }
+            });
+          });
+
+          if (routeLineRef.current) {
+            mapRef.current.map.removeObject(routeLineRef.current);
+          }
+
+          routeLineRef.current = new H.map.Polyline(lineString, {
+            style: { strokeColor: "blue", lineWidth: 5 },
+          });
+
+          mapRef.current.map.addObject(routeLineRef.current);
+
+          mapRef.current.map.getViewModel().setLookAtData({
+            bounds: routeLineRef.current.getBoundingBox(),
+          });
+
+          console.log("Route displayed successfully.");
+        } else {
+          console.error("No routes found.");
+        }
+      },
+      (error) => {
+        console.error("Error calculating route:", error);
+      }
+    );
   };
 
   return (
     <div className="dashboard-container">
       <div id="here-map" className="map-container"></div>
-      {selectedRide && (
-        <RideDetailsModal
-          ride={selectedRide}
-          onAccept={handleAccept}
-          onReject={handleReject}
-          onClose={() => setSelectedRide(null)}
-        />
+      {!activeRide && (
+        <div className="ride-requests">
+          {rideRequests.map((ride) => (
+            <div key={ride.id} className="ride-card">
+              <h3>{ride.passengerName}</h3>
+              <p>Pickup: {ride.pickup.lat}, {ride.pickup.lng}</p>
+              <p>Drop-off: {ride.dropoff.lat}, {ride.dropoff.lng}</p>
+              <p>Fare: {ride.fare}</p>
+              <button onClick={() => acceptRide(ride)}>Accept Ride</button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

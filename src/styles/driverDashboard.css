@@ -1,56 +1,77 @@
-/* Fullscreen Dashboard Container */
+/* Fullscreen Dashboard */
 .dashboard-container {
     width: 100%;
-    height: 100vh; /* Full viewport height */
+    height: 100vh;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevent scrolling */
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-  }
-  
-  /* Fullscreen Map Container */
-  .map-container {
+}
+
+/* HERE Maps Fullscreen */
+.map-container {
     width: 100%;
-    height: 100%; /* Take the full height of the parent */
-    position: absolute; /* Ensure the map fills the viewport */
+    height: 100%;
+    position: absolute;
     top: 0;
     left: 0;
-    z-index: 1; /* Make sure it's behind other UI elements */
-  }
-  
-  /* Popup Styling */
-  .popup-container {
-    background: white;
-    color: black;
-    padding: 10px;
-    border-radius: 10px;
+    z-index: 1;
+}
+
+/* Ride Requests Panel */
+.ride-requests {
     position: absolute;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    width: 300px;
-    z-index: 10; /* Place above the map */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px;
+    border-radius: 10px;
+    width: 320px;
     text-align: center;
-  }
-  
-  .accept-btn {
-    background: #28a745;
+    z-index: 10;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Individual Ride Card */
+.ride-card {
+    background: #f8f8f8;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    color: #333;
+}
+
+/* Active Ride Panel */
+.ride-status {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 10px;
+    width: 320px;
+    text-align: center;
+    z-index: 10;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    color: #333;
+}
+
+/* Active Ride Buttons */
+.ride-status button {
+    background: #007bff;
     color: white;
     border: none;
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
-    margin-right: 5px;
-  }
-  
-  .reject-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
+    margin: 10px 0;
+    width: 100%;
+}
+
+.ride-status button:hover {
+    background: #0056b3;
+}
